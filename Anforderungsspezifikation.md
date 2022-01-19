@@ -3,14 +3,17 @@
 # Anforderungspezifikation: CHARGE
 # 1 Ist-Zustand
 ## 1.1 As-Is Prozesse des Kunden
-Aktuell muss der Vermieter den Verbraucher-Preis-Index manuell kontrollieren, und gegebenfalls den Mietpreis manuell erhöhen.
+Aktuell muss der Vermieter bzw. der Steuerberater den Verbraucher-Preis-Index selbst kontrollieren, und gegebenfalls den daraus resultierenden Mietpreis manuell berechnen und dementsprechend erhöhen.
 
 ## 1.2 Bedürfnisse des Kunden
-Automatisierte Preiswarnungen und Mietpreiserhöhung basierend auf Verbraucher-Preis-Index, Mietverträgen und Stammdaten.
+* Ständige Überwachung des Verbraucher-Preis-Indexes, 
+* Preiswarnungen bei VPI-Werten, welche eine definierte Grenze überschreiten, 
+* Mietpreiserhöhung basierend auf Verbraucher-Preis-Index bzw. Stammdaten.
+* Abrufung der Daten in Form eines fertigen Mietpreisvertrages.
 
 # 2 Soll-Zustand
 ## 2.1 Zielerreichungs-Strategie
-Die Projektprodukt soll als Web-App umgesetzt werden.
+Das Produkt soll in Form einer Web-Applikation gemäß den Anforderungen, die in diesem Dokument genau erläutert werden, umgesetzt werden.
 
 ## 2.2 Soll-Prozesse der Kunden
 Siehe Dokument <u>Soll-Prozesse_v1.2.pdf</u>
@@ -24,7 +27,8 @@ Alle Attribute (Außnahme: Steuernummer vom Vermieter) sind verpflichtend.
 Anhang: Fachdatenmodell_v1.pdf
 
 ## 2.4 Soll-UI-Prototypen
-Die Mockups weisen ausreichend Usability auf, nachdem sie mit den Kunden selbst besprochen wurden.
+Die Mockups weisen ausreichend Usability auf, nachdem sie mit dem Kunden selbst besprochen wurden.
+
 ### 2.4.1 (Vertrags)übersicht
 ![](Contracts.png)
 Mietverträge, Vermieter/Mieter und Objekte werden in einer übersichtlichen Tabelle dargestellt.  
@@ -42,10 +46,7 @@ Keine der Daten werden bei der Eingabe überprüft.
 Im Settings-screen kann eingestellt werden ob der VPI automatisch upgedated werden soll und ab welcher Preisdifferenz eine Warnung angezeigt werden sollte.
 
 ### 2.4.2 Warnungssystem
-
-In der Vertragsübersicht poppt ein Warnungssymbol neben dem Vertrag auf, wenn der Index seit der Letztberechnung gestiegen ist.  
-(Der Index muss so weit steigen, dass die in den Einstellungen angegeben Toleranz überschritten wird.)
-
+Beim Starten des Programmes wird für alle Verträge der Preis neu berechnet (siehe 2.7 Berechnung des Preises). Wenn der neu berechnete Preis um mehr als die in den Einstellungen definierte Toleranz höher ist als der aktuelle Mietpreis in der Datenbank (Betrag), poppt ein Warnungssymbol neben dem Vertrag auf.
 ![](Warnung-Poppt.png)
 
 ### 2.4.3 PDF-export
@@ -58,7 +59,14 @@ Die einzige Soll-Rolle, die an der Applikation beteiligt ist, ist ein Steuerbera
 Benutzt wird die Applikation von Vermietern, vor allem jene, welche im Besitz mehrerer Miet-Immobilien sind.
 
 ## 2.7 Berechnung des Preises
---
+Wird entweder ausgelöst beim Start des Programmes (Warnungsfunktion)
+1. Daten holen:    
+JSON-Request an   
+https://www.data.gv.at/katalog/api/3/action/package_show?id=9016a823-ef08-314d-8ef5-aa12c1800f76   
+2. Das Objekt parsen und response.result.resources[0].url (CSV-File) aufrufen, CSV parsen.
+3. CSV-File im Format: [Indexdatum];[Indextyp];[Indexwert];...
+4. altes Mietvertrag-Objekt aus Datenbank holen
+5. neuer Mietpreis = (Betrag von altem Mietvertrag Objekt aus Datenbank) / (Indexwert von altem Mietvertrag Objekt aus Datenbank) * (neu geholten Indexwert aus CSV)
 
 ## 2.8 Löschfunktion
 Die Löschfunktion um die Daten löschen zu können wenn die Dauer des Vertrags endet, muss manuell ausgeführt werden.
@@ -106,10 +114,12 @@ Die Anwendung selbst stellt keine Form von Programmierschnittstelle zur Verfügu
 
 ## 3.5 Nicht-Funktionen
 ### 3.5.1 Allgemein
-Die Web-App muss nicht offline funktionieren und keine Progressive Web App sein. Außerdem wird keine geringe CPU-Auslastung benötigt und gute Übersicht ist auch nicht zwingend notwendig. 
+Die Web-App muss nicht offline funktionieren und keine Progressive Web App sein.   
+Außerdem wird keine geringe CPU-Auslastung benötigt.   
+Eine gute Übersicht ist auch nicht zwingend notwendig.
  
 ### 3.5.2 Datenauskunftfunktion
-Laut Aufftraggeber wird keine explozite Funktion benötigt, mit der der Kunde Auskunft über seine gespeicherten Daten erhält.
+Laut Aufftraggeber wird keine explizite Funktion benötigt, mit der der Kunde Auskunft über seine gespeicherten Daten erhält.
 
 # 3.6 Qualitätssicherung
 Die Qualitätssicherung erfolgt durch den Auftraggeber beim Abnahmetest.  
@@ -139,7 +149,7 @@ Bei der Abnahme wird ein Vertreter der Auftraggeberorganisation die Applikation 
 7. Preisaktualisierung
     - Gegeben ist die Applikation auf der Startseite ("/") eine Datenbank mit einem vollständig erfassten Vertrag
     - Wenn der Benutzer auf die Interaktionsschaltfläche und danach auf "Vertrag aktualisieren" klickt, wird der Vertrag mit dem aktuellen Wert von data.gv neu berechnet.
-    
+
 # 4 Anhang
 ## 4.1 AsIsStories.docx
 <u>AsIsStories.docx</u>
